@@ -71,7 +71,7 @@ def post_report(args) -> list:
         args.SLACK_MESSAGE_TEXT = "There are currently no pending "
         args.SLACK_MESSAGE_TEXT += "Mobilize accounts."
         notify_slack(args)
-    if args.VERBOSE:
+    if hasattr(args, 'VERBOSE') and args.VERBOSE:
         import pprint
         pprint.PrettyPrinter(indent=2).pprint({'approved': approved_accounts})
         pprint.PrettyPrinter(indent=2).pprint({'declined': declined_accounts})

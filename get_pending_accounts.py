@@ -32,7 +32,7 @@ def get_pending_accounts(args) -> list:
     done = False
     pending_accounts = []
     while not done:
-        if args.VERBOSE:
+        if hasattr(args, 'VERBOSE') and args.VERBOSE:
             print('getting users at offset %s' % offset)
         response = requests.get(
             '%s%s' % (
@@ -44,7 +44,7 @@ def get_pending_accounts(args) -> list:
                 args.MOBILIZE_API_SECRET
             )
         )
-        if args.VERBOSE:
+        if hasattr(args, 'VERBOSE') and args.VERBOSE:
             print('status: %s' % response.status_code)
         if response.status_code == 200:
             users = response.json()
