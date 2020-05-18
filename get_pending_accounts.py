@@ -1,10 +1,8 @@
-from datetime import datetime
-
 from pywell.entry_points import run_from_cli
 import requests
 
 
-DESCRIPTION = 'Get all pending accounts from Mobilize created before today.'
+DESCRIPTION = 'Get all pending accounts from Mobilize.'
 
 ARG_DEFINITIONS = {
     'MOBILIZE_API_KEY': 'API key for mobilize.io',
@@ -20,8 +18,15 @@ REQUIRED_ARGS = [
 ]
 
 
+def user_is_pending_for_group(user, group_id):
+    return len([
+        group for group in user.get('groups', [])
+        if group.get('id', '') == group_id
+        and group.get('status', '') == 'pending'
+    ]) > 0
+
+
 def get_pending_accounts(args) -> list:
-    today = datetime.now().strftime('%Y-%m-%d')
     offset = 0
     count = 0
     done = False
@@ -46,14 +51,7 @@ def get_pending_accounts(args) -> list:
             count += len(users)
             pending_accounts += [
                 user for user in users
-                if len([
-                    group for group in user.get('groups', [])
-                    if group.get('id', '') == args.MOBILIZE_DEFAULT_GROUP_ID
-                    and group.get('status', '') == 'pending'
-                ]) > 0
-                and datetime.utcfromtimestamp(
-                    user.get('created_at', 0) / 1000
-                ).strftime('%Y-%m-%d') < today
+                if user_is_pending_for_group(user, args.MOBILIZE_DEFAULT_GROUP_ID)
             ]
             if len(users) < 20:
                 done = True
