@@ -31,6 +31,12 @@ REQUIRED_ARGS = [
 ]
 
 
+def account_description(account):
+    return "• %s (%s)" % (
+        account.get('name', '[NO NAME]'),
+        account.get('email', '[NO EMAIL]')
+    )
+
 def post_report(args) -> list:
     accounts = get_pending_accounts(args)
     args.EMAILS = ','.join([account.get('email', '') for account in accounts])
@@ -44,32 +50,26 @@ def post_report(args) -> list:
         if account.get('email', '') not in approved_emails
     ]
     if len(approved_accounts):
-        args.SLACK_MESSAGE_TEXT = "The following pending Mobilize accounts "
-        args.SLACK_MESSAGE_TEXT += "should be *approved* "
-        args.SLACK_MESSAGE_TEXT += "(subscribed to MoveOn's email list):\n"
-        args.SLACK_MESSAGE_TEXT += "\n".join([
-            "• %s (%s)" % (
-                account.get('name', '[NO NAME]'),
-                account.get('email', '[NO EMAIL]')
-            )
-            for account in approved_accounts
-        ])
+        account_descriptions = [
+            account_description(account) for account in approved_accounts
+        ]
+        args.SLACK_MESSAGE_TEXT = "The following pending Mobilize accounts "\
+                                  "should be *approved* (subscribed to "\
+                                  "MoveOn's email list):\n"\
+                                  + "\n".join(account_descriptions)
         notify_slack(args)
     if len(declined_accounts):
-        args.SLACK_MESSAGE_TEXT = "The following pending Mobilize accounts "
-        args.SLACK_MESSAGE_TEXT += "should be *declined* "
-        args.SLACK_MESSAGE_TEXT += "(not subscribed to MoveOn's email list):\n"
-        args.SLACK_MESSAGE_TEXT += "\n".join([
-            "• %s (%s)" % (
-                account.get('name', '[NO NAME]'),
-                account.get('email', '[NO EMAIL]')
-            )
-            for account in declined_accounts
-        ])
+        account_descriptions = [
+            account_description(account) for account in declined_accounts
+        ]
+        args.SLACK_MESSAGE_TEXT = "The following pending Mobilize accounts "\
+                                  "should be *declined* (not subscribed to "\
+                                  "MoveOn's email list):\n"\
+                                  + "\n".join(account_descriptions)
         notify_slack(args)
     elif len(approved_accounts) == 0:
-        args.SLACK_MESSAGE_TEXT = "There are currently no pending "
-        args.SLACK_MESSAGE_TEXT += "Mobilize accounts."
+        args.SLACK_MESSAGE_TEXT = "There are currently no pending Mobilize "\
+                                  "accounts."
         notify_slack(args)
     if hasattr(args, 'VERBOSE') and args.VERBOSE:
         import pprint
