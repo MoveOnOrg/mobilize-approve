@@ -1,4 +1,4 @@
-psycopg2==2.8.4
+psycopg2-binary==2.8.4
 git+https://github.com/sreynen/pywell@main#egg=pywell
 requests==2.22.0
 slackweb==1.0.5

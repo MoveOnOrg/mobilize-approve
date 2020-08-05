@@ -1,5 +1,4 @@
-
-from pywell.entry_points import run_from_cli
+from pywell.entry_points import run_from_cli, run_from_lamba
 from pywell.notify_slack import notify_slack
 import requests
 
@@ -80,6 +79,12 @@ def post_report(args) -> list:
         len(approved_accounts),
         len(declined_accounts)
     )
+
+
+def aws_lambda(event, context) -> str:
+     return run_from_lamba(
+         post_report, DESCRIPTION, ARG_DEFINITIONS, REQUIRED_ARGS, event
+     )
 
 
 if __name__ == '__main__':
