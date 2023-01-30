@@ -72,7 +72,7 @@ def post_report(args) -> list:
 
 
 def aws_lambda(event, context) -> str:
-     return run_from_lamba(
+     return run_from_lambda(
          post_report, DESCRIPTION, ARG_DEFINITIONS, REQUIRED_ARGS, event
      )
 
