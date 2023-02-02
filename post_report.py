@@ -1,5 +1,6 @@
-from pywell.entry_points import run_from_cli, run_from_lamba
+from pywell.entry_points import run_from_cli, run_from_lambda
 from pywell.notify_slack import notify_slack
+from pywell.secrets_manager import get_secret
 import requests
 
 from get_pending_accounts import get_pending_accounts
@@ -9,25 +10,10 @@ from filter_emails_by_membership import filter_emails_by_membership
 DESCRIPTION = 'Post a report on pending accounts from Mobilize.'
 
 ARG_DEFINITIONS = {
-    'DB_HOST': 'Database host IP or hostname',
-    'DB_PORT': 'Database port number',
-    'DB_USER': 'Database user',
-    'DB_PASS': 'Database password',
-    'DB_NAME': 'Database name',
-    'MOBILIZE_API_KEY': 'API key for mobilize.io',
-    'MOBILIZE_API_SECRET': 'API secret for mobilize.io',
-    'MOBILIZE_API_ROOT': 'Root URL for mobilize.io API',
-    'MOBILIZE_DEFAULT_GROUP_ID': 'The first group members request to join',
-    'SLACK_WEBHOOK': 'Web hook URL for Slack.',
-    'SLACK_CHANNEL': 'Slack channel to send to.',
     'VERBOSE': 'Give verbose output if set'
 }
 
-REQUIRED_ARGS = [
-    'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASS', 'DB_NAME',
-    'MOBILIZE_API_KEY', 'MOBILIZE_API_SECRET', 'MOBILIZE_API_ROOT',
-    'MOBILIZE_DEFAULT_GROUP_ID', 'SLACK_WEBHOOK', 'SLACK_CHANNEL'
-]
+REQUIRED_ARGS = []
 
 
 def account_description(account):
@@ -37,7 +23,10 @@ def account_description(account):
     )
 
 def post_report(args) -> list:
-    accounts = get_pending_accounts(args)
+    script_settings = get_secret('mobilize-approve')
+    args.SLACK_WEBHOOK = script_settings['SLACK_WEBHOOK']
+    args.SLACK_CHANNEL = script_settings['SLACK_CHANNEL']
+    accounts = get_pending_accounts(args, script_settings)
     args.EMAILS = ','.join([account.get('email', '') for account in accounts])
     approved_emails = filter_emails_by_membership(args)
     approved_accounts = [
@@ -48,6 +37,7 @@ def post_report(args) -> list:
         account for account in accounts
         if account.get('email', '') not in approved_emails
     ]
+
     if len(approved_accounts):
         account_descriptions = [
             account_description(account) for account in approved_accounts
@@ -82,7 +72,7 @@ def post_report(args) -> list:
 
 
 def aws_lambda(event, context) -> str:
-     return run_from_lamba(
+     return run_from_lambda(
          post_report, DESCRIPTION, ARG_DEFINITIONS, REQUIRED_ARGS, event
      )
 

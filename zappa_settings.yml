@@ -1,0 +1,21 @@
+---
+prod:
+  apigateway_enabled: false
+  aws_region: us-west-1
+  events:
+    - function: post_report.aws_lambda
+      expression: cron(0 11 * * ? *)
+      # 11 AM UTC/7 AM ET daily
+  keep_warm: false
+  lambda_handler: post_report.aws_lambda
+  memory_size: 2048
+  project_name: mobilize-approve
+  role_name: test_python
+  runtime: python3.9
+  s3_bucket: zappa-west1
+  timeout_seconds: 300
+  vpc_config:
+      SubnetIds:
+        - subnet-d8385681
+      SecurityGroupIds:
+        - sg-c2ee0da5
